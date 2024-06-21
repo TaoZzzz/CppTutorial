@@ -14,13 +14,35 @@ UMoveComponent::UMoveComponent()
 }
 
 
+void UMoveComponent::EnableMovement(bool ShouldMove)
+{
+	MoveEnable = ShouldMove;
+	SetComponentTickEnabled(MoveEnable);
+}
+
+void UMoveComponent::ResetMovement()
+{
+	CurDistance = 0.0;
+	SetRelativeLocation(StartRelativeLocation);
+}
+
+void UMoveComponent::SetMoveDirection(int Direction)
+{
+	MoveDirection = Direction >= 1 ? 1 : -1;
+}
+
 // Called when the game starts
 void UMoveComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	// set start Location
+	StartRelativeLocation = this->GetRelativeLocation();
 	
+	MoveOffsetNorm = MoveOffset;
+	MoveOffsetNorm.Normalize();
+	MaxDistance = MoveOffset.Length();
+	SetComponentTickEnabled(MoveEnable);
 }
 
 
@@ -29,6 +51,21 @@ void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (MoveEnable)
+	{
+		CurDistance += DeltaTime * Speed * MoveDirection;
+		if (CurDistance >= MaxDistance || CurDistance <= 0)
+		{
+			MoveDirection *= -1;
+
+			OnEndPointReached.Broadcast(CurDistance >= MaxDistance);
+
+			CurDistance = FMath::Clamp(CurDistance, 0.0f, MaxDistance);
+		}
+			
+	}
+	
+	// .
+	SetRelativeLocation(StartRelativeLocation+MoveOffsetNorm*CurDistance);
 }
 
