@@ -22,4 +22,7 @@ class CPPTUTORIAL_API IMyCollectAcceptable
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+
+	UFUNCTION(BlueprintCallable,BlueprintImplementableEvent)
+	void Collect(UObject* SourceObj,float Count);
 };
